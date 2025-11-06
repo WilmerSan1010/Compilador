@@ -1,0 +1,86 @@
+/* Utilidades propias (apoyándonos en Tailwind) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+.badge-gray {
+  background: #f3f4f6;
+  color: #374151;
+}
+.badge-green {
+  background: #dcfce7;
+  color: #166534;
+}
+.badge-red {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.card {
+  border-radius: 1rem;
+  background: #fff;
+  padding: 1.25rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+}
+
+/* Botones */
+.btn {
+  background: #e5e7eb;
+  color: #111827;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+}
+.btn:hover {
+  background: #d1d5db;
+}
+.btn-primary {
+  background: #4f46e5;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+}
+.btn-primary:hover {
+  background: #4338ca;
+}
+.btn-dark {
+  background: #0f172a;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+}
+.btn-dark:hover {
+  background: #0b1220;
+}
+.btn-outline {
+  border: 1px solid #cbd5e1;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+}
+.btn-outline:hover {
+  background: #f1f5f9;
+}
+.btn-icon {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+}
+.btn-icon:hover {
+  background: #e2e8f0;
+}
+
+/* Scroll más suave en modales */
+#modalBody {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
