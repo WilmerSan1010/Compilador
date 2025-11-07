@@ -6,6 +6,8 @@
   padding: 0.25rem 0.75rem;
   font-size: 0.75rem;
   font-weight: 500;
+  margin-right: 0.5rem;
+  margin-bottom: 0.25rem;
 }
 .badge-gray {
   background: #f3f4f6;
@@ -83,4 +85,11 @@
 #modalBody {
   scrollbar-width: thin;
   scrollbar-color: #cbd5e1 transparent;
+}
+
+/* Separación y layout para las fases (Léxico, Sintáctico, Semántico, TAC) */
+#phase {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
