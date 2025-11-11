@@ -151,17 +151,17 @@ modal.addEventListener("click", (e) => {
 /**
  * Error léxico: problemas al convertir el texto en tokens.
  */
-class LexError extends Error {}
+class LexError extends Error { }
 
 /**
  * Error sintáctico: problemas al estructurar tokens en un AST.
  */
-class ParserError extends Error {}
+class ParserError extends Error { }
 
 /**
  * Error semántico: problemas de tipos, variables sin inicializar, etc.
  */
-class SemanticError extends Error {}
+class SemanticError extends Error { }
 
 // =======================================================
 // LÉXICO: DEFINICIÓN DE TOKENS Y TOKENIZER
@@ -394,8 +394,7 @@ class Parser {
       return t;
     }
     throw new ParserError(
-      `Error sintáctico: se esperaba ${msg} en línea ${t.line}, columna ${
-        t.col
+      `Error sintáctico: se esperaba ${msg} en línea ${t.line}, columna ${t.col
       }, pero se encontró '${t.lexeme || t.type}'.`
     );
   }
@@ -405,10 +404,14 @@ class Parser {
    * Espera una única sentencia seguida de EOF y la envuelve en un nodo "Program".
    */
   parse() {
-    const stmt = this.statement();
+    const stmts = [];
+    while (this.peek().type !== "EOF") {
+      stmts.push(this.statement());
+    }
     this.expect("EOF", "fin de entrada");
-    return { kind: "Program", stmt };
+    return { kind: "Program", stmts };
   }
+
 
   /**
    * Analiza una sentencia:
@@ -464,10 +467,8 @@ class Parser {
 
     // Si no encaja nada, error sintáctico genérico
     throw new ParserError(
-      `Error sintáctico: sentencia no válida empezando en línea ${
-        t.line
-      }, columna ${t.col} con '${
-        t.lexeme || t.type
+      `Error sintáctico: sentencia no válida empezando en línea ${t.line
+      }, columna ${t.col} con '${t.lexeme || t.type
       }'. Use if/while/bloque o una asignación.`
     );
   }
@@ -514,7 +515,7 @@ class Parser {
    */
   equality() {
     let n = this.relation();
-    for (;;) {
+    for (; ;) {
       if (this.match("EQ"))
         n = { kind: "Binary", op: "==", left: n, right: this.relation() };
       else if (this.match("NEQ"))
@@ -529,7 +530,7 @@ class Parser {
    */
   relation() {
     let n = this.term();
-    for (;;) {
+    for (; ;) {
       if (this.match("LT"))
         n = { kind: "Binary", op: "<", left: n, right: this.term() };
       else if (this.match("LE"))
@@ -548,7 +549,7 @@ class Parser {
    */
   term() {
     let n = this.factor();
-    for (;;) {
+    for (; ;) {
       if (this.match("PLUS"))
         n = { kind: "Binary", op: "+", left: n, right: this.factor() };
       else if (this.match("MINUS"))
@@ -563,7 +564,7 @@ class Parser {
    */
   factor() {
     let n = this.unary();
-    for (;;) {
+    for (; ;) {
       if (this.match("STAR"))
         n = { kind: "Binary", op: "*", left: n, right: this.unary() };
       else if (this.match("SLASH"))
@@ -609,8 +610,7 @@ class Parser {
 
     // Si nada coincide, error de expresión inesperada
     throw new ParserError(
-      `Error sintáctico: expresión inesperada en línea ${t.line}, columna ${
-        t.col
+      `Error sintáctico: expresión inesperada en línea ${t.line}, columna ${t.col
       }: '${t.lexeme || t.type}'.`
     );
   }
@@ -657,7 +657,9 @@ function analyze(ast) {
   const visit = (n) => {
     switch (n.kind) {
       case "Program":
-        return visit(n.stmt);
+        n.stmts.forEach(visit);
+        return null;
+
 
       case "Block":
         n.stmts.forEach(visit);
@@ -802,7 +804,7 @@ function genTAC(ast) {
   const gen = (node) => {
     switch (node.kind) {
       case "Program":
-        gen(node.stmt);
+        node.stmts.forEach(gen);
         return;
 
       case "Block":
@@ -941,7 +943,7 @@ function astLabel(n) {
 function astChildren(n) {
   switch (n.kind) {
     case "Program":
-      return [n.stmt];
+      return n.stmts;
     case "Block":
       return n.stmts;
     case "If":
