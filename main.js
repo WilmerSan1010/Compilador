@@ -7,11 +7,11 @@ import {
   OPEN_ON_HOVER,
 } from "./dom/ui.js";
 
-import { tokenize, tokenTypeLabel } from "./Compiler/lexer.js";
-import { Parser } from "./Compiler/parser.js";
-import { analyze } from "./Compiler/analyzer.js";
-import { genTAC } from "./Compiler/tac_gen.js";
-import { drawASTInto } from "./Compiler/ast_renderer.js";
+import { tokenize, tokenTypeLabel } from "./compiler/lexer.js";
+import { Parser } from "./compiler/parser.js";
+import { analyze } from "./compiler/analyzer.js";
+import { genTAC } from "./compiler/tac_gen.js";
+import { drawASTInto } from "./compiler/ast_renderer.js";
 // =======================================================
 // PIPELINE DE COMPILACIÓN COMPLETA
 // =======================================================
