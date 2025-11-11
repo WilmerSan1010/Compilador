@@ -1,123 +1,107 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Mini Compilador: if / while → AST, Tipos y Símbolos</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css" />
-  </head>
 
-  <body
-    class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 text-slate-800"
-  >
-    <main class="max-w-7xl mx-auto px-4 py-8 space-y-6">
-      <header class="flex items-start justify-between gap-4">
-        <div>
-          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
-            Mini Compilador
-          </h1>
-          <p class="text-sm text-slate-600 mt-1">
-            Pega <span class="font-semibold">una sola</span> sentencia
-            <code class="mono">if</code> <em>o</em>
-            <code class="mono">while</code> con asignaciones. No es necesario
-            envolver todo el código entre <code class="mono">{ }</code>. El
-            sistema muestra fases, AST y tablas.
-          </p>
-        </div>
-        <div class="hidden sm:flex items-center flex-wrap gap-2">
-          <span class="badge badge-gray">Léxico</span>
-          <span class="badge badge-gray">Sintáctico</span>
-          <span class="badge badge-gray">Semántico</span>
-          <span class="badge badge-gray">TAC</span>
-        </div>
-      </header>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mini Compilador: if / while → AST, Tipos y Símbolos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
 
-      <section class="card space-y-3">
-        <label for="code" class="text-sm font-semibold text-slate-700"
-          >Código de entrada</label
-        >
-        <textarea
-          id="code"
-          class="w-full h-40 mono rounded-xl border border-slate-200 p-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-          placeholder="Ejemplos:
-if (3 < 5) { y = 10; } else { y = 0; }
-while (5 < 10) { x = 1; }"
-        ></textarea>
-
-        <div class="flex flex-wrap gap-2 pt-1">
-          <button id="btnRun" class="btn-primary">Analizar</button>
-          <button id="btnIf" class="btn-dark">Ejemplo if</button>
-          <button id="btnWhile" class="btn-dark">Ejemplo while</button>
-          <button id="btnClear" class="btn">Limpiar</button>
-
-          <!-- Abrir resultados en modal -->
-          <div class="ml-auto flex flex-wrap gap-2">
-            <button id="btnAST" class="btn-outline" title="Ver Árbol AST">
-              Ver AST
-            </button>
-            <button id="btnTOK" class="btn-outline" title="Ver tokens">
-              Ver Tokens
-            </button>
-            <button
-              id="btnSYM"
-              class="btn-outline"
-              title="Ver tabla de símbolos"
-            >
-              Ver Símbolos
-            </button>
-            <button id="btnTYP" class="btn-outline" title="Ver tabla de tipos">
-              Ver Tipos
-            </button>
-            <!-- Botón de TAC eliminado -->
-          </div>
-        </div>
-
-        <div id="phase" class="pt-3 text-sm"></div>
-      </section>
-
-      <footer class="text-xs text-slate-500">
-        <p>
-          Soporta: <code class="mono">if</code>/<code class="mono">else</code>,
-          <code class="mono">while</code>, bloques
-          <code class="mono">{ }</code>, asignaciones
-          <code class="mono">x = expr;</code> y expresiones con
-          <code class="mono">()</code>, <code class="mono">-</code>,
-          <code class="mono">!</code>, <code class="mono">* / + -</code>,
-          <code class="mono">&lt; &lt;= &gt; &gt;=</code>,
-          <code class="mono">== !=</code>. Tipos:
-          <code class="mono">int</code> y <code class="mono">bool</code>.
+<body class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 text-slate-800">
+  <main class="max-w-7xl mx-auto px-4 py-8 space-y-6">
+    <header class="flex items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
+          Mini Compilador
+        </h1>
+        <p class="text-sm text-slate-600 mt-1">
+          Pega <span class="font-semibold">una sola</span> sentencia
+          <code class="mono">if</code> <em>o</em>
+          <code class="mono">while</code> con asignaciones. No es necesario
+          envolver todo el código entre <code class="mono">{ }</code>. El
+          sistema muestra fases, AST y tablas.
         </p>
-      </footer>
-    </main>
+      </div>
+      <div class="hidden sm:flex items-center flex-wrap gap-2">
+        <span class="badge badge-gray">Léxico</span>
+        <span class="badge badge-gray">Sintáctico</span>
+        <span class="badge badge-gray">Semántico</span>
+        <span class="badge badge-gray">TAC</span>
+      </div>
+    </header>
 
-    <!-- Modal genérico -->
-    <div id="modalRoot" class="fixed inset-0 z-50 hidden">
-      <div class="absolute inset-0 bg-slate-900/50" data-close-modal></div>
-      <div class="relative mx-auto my-8 w-[96vw] max-w-6xl">
-        <div class="rounded-2xl bg-white shadow-xl ring-1 ring-slate-200">
-          <div class="flex items-center justify-between px-5 py-4 border-b">
-            <h3 id="modalTitle" class="text-lg font-semibold">Título</h3>
-            <button
-              class="btn-icon"
-              id="modalClose"
-              title="Cerrar"
-              aria-label="Cerrar"
-            >
-              ✕
-            </button>
-          </div>
-          <div
-            id="modalBody"
-            class="px-5 py-4 max-h-[72vh] overflow-auto"
-          ></div>
-          <div class="px-5 py-4 border-t text-right">
-            <button class="btn" id="modalOk">Cerrar</button>
-          </div>
+    <section class="card space-y-3">
+      <label for="code" class="text-sm font-semibold text-slate-700">Código de entrada</label>
+      <textarea id="code"
+        class="w-full h-40 mono rounded-xl border border-slate-200 p-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+        placeholder="Ejemplos:
+if (3 < 5) { y = 10; } else { y = 0; }
+"></textarea>
+
+      <div class="flex flex-wrap gap-2 pt-1">
+        <button id="btnRun" class="btn-primary">Analizar</button>
+        <button id="btnIf" class="btn-dark">Ejemplo if</button>
+        
+        <button id="btnClear" class="btn">Limpiar</button>
+
+        <!-- Abrir resultados en modal -->
+        <div class="ml-auto flex flex-wrap gap-2">
+          <button id="btnAST" class="btn-outline" title="Ver Árbol AST">
+            Ver AST
+          </button>
+          <button id="btnTOK" class="btn-outline" title="Ver tokens">
+            Ver Tokens
+          </button>
+          <button id="btnSYM" class="btn-outline" title="Ver tabla de símbolos">
+            Ver Símbolos
+          </button>
+          <button id="btnTYP" class="btn-outline" title="Ver tabla de tipos">
+            Ver Tipos
+          </button>
+          <!-- Botón de TAC eliminado -->
+        </div>
+      </div>
+
+      <div id="phase" class="pt-3 text-sm"></div>
+    </section>
+
+    <footer class="text-xs text-slate-500">
+      <p>
+        Soporta: <code class="mono">if</code>/<code class="mono">else</code>,
+        <code class="mono">while</code>, bloques
+        <code class="mono">{ }</code>, asignaciones
+        <code class="mono">x = expr;</code> y expresiones con
+        <code class="mono">()</code>, <code class="mono">-</code>,
+        <code class="mono">!</code>, <code class="mono">* / + -</code>,
+        <code class="mono">&lt; &lt;= &gt; &gt;=</code>,
+        <code class="mono">== !=</code>. Tipos:
+        <code class="mono">int</code> y <code class="mono">bool</code>.
+      </p>
+    </footer>
+  </main>
+
+  <!-- Modal genérico -->
+  <div id="modalRoot" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-slate-900/50" data-close-modal></div>
+    <div class="relative mx-auto my-8 w-[96vw] max-w-6xl">
+      <div class="rounded-2xl bg-white shadow-xl ring-1 ring-slate-200">
+        <div class="flex items-center justify-between px-5 py-4 border-b">
+          <h3 id="modalTitle" class="text-lg font-semibold">Título</h3>
+          <button class="btn-icon" id="modalClose" title="Cerrar" aria-label="Cerrar">
+            ✕
+          </button>
+        </div>
+        <div id="modalBody" class="px-5 py-4 max-h-[72vh] overflow-auto"></div>
+        <div class="px-5 py-4 border-t text-right">
+          <button class="btn" id="modalOk">Cerrar</button>
         </div>
       </div>
     </div>
+  </div>
 
-    <script type="module" src="script.js"></script>
-  </body>
+  <script type="module" src="script.js"></script>
+</body>
+
 </html>

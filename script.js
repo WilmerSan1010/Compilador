@@ -173,7 +173,6 @@ class SemanticError extends Error { }
 const KEYWORDS = {
   if: "IF",
   else: "ELSE",
-  while: "WHILE",
   true: "TRUE",
   false: "FALSE",
 };
@@ -204,7 +203,6 @@ const SIMPLE = {
 const TOKEN_LABELS = {
   IF: "Palabra clave: if",
   ELSE: "Palabra clave: else",
-  WHILE: "Palabra clave: while",
   TRUE: "Booleano: true",
   FALSE: "Booleano: false",
   IDENT: "Identificador",
@@ -432,15 +430,6 @@ class Parser {
       return { kind: "If", cond, then: thenB, else: elseB };
     }
 
-    // Sentencia while
-    if (this.match("WHILE")) {
-      this.expect("LPAREN", "'(' tras while");
-      // Uso de this.expression para mantener compatibilidad con el código original
-      const cond = self.expression ? this.expression() : this.expression(); // seguro
-      this.expect("RPAREN", ")' tras condición");
-      const body = this.statementOrBlock();
-      return { kind: "While", cond, body };
-    }
 
     // Bloque { ... }
     if (this.match("LBRACE")) {
@@ -761,16 +750,6 @@ function analyze(ast) {
         if (n.else) visit(n.else);
         return null;
       }
-
-      case "While": {
-        const ct = visit(n.cond);
-        if (ct !== "bool")
-          throw new SemanticError(
-            "Error semántico: la condición del while debe ser booleana."
-          );
-        visit(n.body);
-        return null;
-      }
     }
   };
 
@@ -838,22 +817,6 @@ function genTAC(ast) {
         }
         return;
       }
-
-      case "While": {
-        const Lstart = L(),
-          Lbody = L(),
-          Lend = L();
-
-        code.push(`${Lstart}:`);
-        const c = genExpr(node.cond);
-        code.push(`if ${c} goto ${Lbody}`);
-        code.push(`goto ${Lend}`);
-        code.push(`${Lbody}:`);
-        gen(node.body);
-        code.push(`goto ${Lstart}`);
-        code.push(`${Lend}:`);
-        return;
-      }
     }
   };
 
@@ -919,8 +882,6 @@ function astLabel(n) {
       return "{}";       
     case "If":
       return "if";
-    case "While":
-      return "while";
     case "Assign":
       return "=";         
     case "Var":
@@ -950,8 +911,6 @@ function astChildren(n) {
       return n.stmts;
     case "If":
       return [n.cond, n.then, ...(n.else ? [n.else] : [])];
-    case "While":
-      return [n.cond, n.body];
     case "Assign":
       return [n.expr];
     case "Unary":
@@ -1175,10 +1134,6 @@ $("#btnIf").addEventListener("click", () => {
   code.value = "if (3 < 5) { y = 10; } else { y = 0; }";
 });
 
-// Botón de ejemplo: sentencia while
-$("#btnWhile").addEventListener("click", () => {
-  code.value = "while (5 < 10) { x = 1; }";
-});
 
 // Botón para limpiar el código y el estado
 $("#btnClear").addEventListener("click", () => {
