@@ -914,25 +914,27 @@ function genTAC(ast) {
 function astLabel(n) {
   switch (n.kind) {
     case "Program":
-      return "Programa";
+      return "prog";      
     case "Block":
-      return "Bloque";
+      return "{}";       
     case "If":
-      return "Si";
+      return "if";
     case "While":
-      return "Mientras";
+      return "while";
     case "Assign":
-      return `Asignación(${n.name})`;
+      return "=";         
     case "Var":
-      return `Variable(${n.name})`;
+      return n.name;      
     case "Num":
-      return `Número(${n.value})`;
+      return String(n.value);          
     case "Bool":
-      return `Booleano(${n.value})`;
+      return n.value ? "true" : "false";
     case "Unary":
-      return `Unario(${n.op})`;
+      return n.op;        
     case "Binary":
-      return `Binario(${n.op})`;
+      return n.op;       
+    default:
+      return n.kind;      
   }
 }
 
