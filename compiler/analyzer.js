@@ -57,7 +57,7 @@ export function analyze(ast) {
         const sym = ensure(n.name, n.line || 0);
         if (sym.type == null) {
           throw new SemanticError(
-            `Error semántico: variable '${n.name}' usada antes de ser inicializada (línea ${n.line}, col ${n.col}).`
+            `Error semántico: variable '${n.name}' usada antes de ser inicializada (línea ${n.line}).`
           );
         }
         setType(`var ${n.name}`, sym.type);

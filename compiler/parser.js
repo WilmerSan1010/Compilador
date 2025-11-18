@@ -51,8 +51,7 @@ export class Parser {
       return t;
     }
     throw new ParserError(
-      `Error sintáctico: se esperaba ${msg} en línea ${t.line}, columna ${t.col
-      }, pero se encontró '${t.lexeme || t.type}'.`
+      `Error sintáctico: se esperaba ${msg} en línea ${t.line}, pero se encontró '${t.lexeme || t.type}'.`
     );
   }
 
@@ -108,7 +107,6 @@ export class Parser {
         kind: "Assign",
         name: nameTok.lexeme,
         line: nameTok.line,
-        col: nameTok.col,
         expr,
       };
     }
@@ -116,7 +114,7 @@ export class Parser {
     // Si no encaja nada, error sintáctico genérico
     throw new ParserError(
       `Error sintáctico: sentencia no válida empezando en línea ${t.line
-      }, columna ${t.col} con '${t.lexeme || t.type
+      } con '${t.lexeme || t.type
       }'. Use if/while/bloque o una asignación.`
     );
   }
@@ -247,7 +245,7 @@ export class Parser {
 
     if (this.match("IDENT")) {
       const p = this.prev();
-      return { kind: "Var", name: p.lexeme, line: p.line, col: p.col };
+      return { kind: "Var", name: p.lexeme, line: p.line };
     }
 
     if (this.match("LPAREN")) {
@@ -258,7 +256,7 @@ export class Parser {
 
     // Si nada coincide, error de expresión inesperada
     throw new ParserError(
-      `Error sintáctico: expresión inesperada en línea ${t.line}, columna ${t.col
+      `Error sintáctico: expresión inesperada en línea ${t.line
       }: '${t.lexeme || t.type}'.`
     );
   }

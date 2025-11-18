@@ -85,14 +85,12 @@ export function tokenTypeLabel(ttype) {
 export function tokenize(src) {
   const toks = [];
   let i = 0,
-    line = 1,
-    col = 1;
+    line = 1;
   const len = src.length;
 
-  // Avanza n caracteres en la entrada, actualizando columna
+  // Avanza n caracteres en la entrada
   const adv = (n = 1) => {
     i += n;
-    col += n;
   };
 
   while (i < len) {
@@ -108,13 +106,11 @@ export function tokenize(src) {
     if (c === "\n") {
       i++;
       line++;
-      col = 1;
       continue;
     }
 
     // Identificadores o palabras reservadas
     if ((c >= "A" && c <= "Z") || (c >= "a" && c <= "z") || c === "_") {
-      const sc = col;
       let s = i;
       adv();
       while (i < len) {
@@ -130,31 +126,29 @@ export function tokenize(src) {
       }
       const lex = src.slice(s, i);
       const ttype = KEYWORDS[lex] || "IDENT";
-      toks.push({ type: ttype, lexeme: lex, line, col: sc });
+      toks.push({ type: ttype, lexeme: lex, line });
       continue;
     }
 
     // Números (enteros)
     if (c >= "0" && c <= "9") {
-      const sc = col;
       let s = i;
       adv();
       while (i < len && src[i] >= "0" && src[i] <= "9") adv();
       const lex = src.slice(s, i);
-      toks.push({ type: "NUMBER", lexeme: lex, line, col: sc });
+      toks.push({ type: "NUMBER", lexeme: lex, line });
       continue;
     }
 
     // Operadores de dos caracteres: ==, !=, <=, >=
     const two = src.slice(i, i + 2);
     if (two === "==" || two === "!=" || two === "<=" || two === ">=") {
-      const sc = col;
       let type;
       if (two === "==") type = "EQ";
       else if (two === "!=") type = "NEQ";
       else if (two === "<=") type = "LE";
       else type = "GE";
-      toks.push({ type, lexeme: two, line, col: sc });
+      toks.push({ type, lexeme: two, line });
       adv(2);
       continue;
     }
@@ -167,18 +161,19 @@ export function tokenize(src) {
 
     // Operadores y símbolos de un carácter
     if (SIMPLE[c]) {
-      toks.push({ type: SIMPLE[c], lexeme: c, line, col });
+      toks.push({ type: SIMPLE[c], lexeme: c, line });
       adv();
+      
       continue;
     }
 
     // Carácter desconocido → error léxico
     throw new LexError(
-      `Error léxico: carácter inválido '${c}' en línea ${line}, columna ${col}.`
+      `Error léxico: carácter inválido '${c}' en línea ${line}.`
     );
   }
 
   // Token final de fin de entrada
-  toks.push({ type: "EOF", lexeme: "", line, col });
+  toks.push({ type: "EOF", lexeme: "", line });
   return toks;
 }

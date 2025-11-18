@@ -195,9 +195,8 @@ function openTokensModal() {
     tokenTypeLabel(t.type), // tipo mostrado en español
     t.lexeme ?? "",
     String(t.line),
-    String(t.col),
   ]);
-  const table = makeTable(["#", "Tipo", "Lexema", "Línea", "Col"], rows);
+  const table = makeTable(["#", "Tipo", "Lexema", "Línea"], rows);
   openModal("Tokens (léxico)", table);
 }
 
@@ -210,10 +209,8 @@ function openSymbolsModal() {
   const rows = LAST.symbols.map((s) => [
     s.name,
     s.type ?? "—",
-    String(s.firstLine ?? "—"),
-    s.scope || "global",
   ]);
-  const table = makeTable(["Identificador", "Tipo", "Línea", "Ámbito"], rows);
+  const table = makeTable(["Identificador", "Tipo"], rows);
   openModal("Tabla de símbolos", table);
 }
 
