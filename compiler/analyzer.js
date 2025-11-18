@@ -1,13 +1,13 @@
 import { SemanticError } from "./errors.js";
+
 // =======================================================
-// ANÁLISIS SEMÁNTICO
+// ANÁLISIS SEMÁNTICO: FÓRMULAS ARITMÉTICAS
 // =======================================================
 
 /**
  * Recorre el AST comprobando reglas semánticas:
- * - Variables deben inicializarse antes de usarse.
- * - Operadores deben aplicarse a tipos correctos.
- * - Condiciones de if deben ser booleanas.
+ * - Variables deben tener tipos consistentes.
+ * - Operadores se aplican a tipos correctos.
  *
  * @param {object} ast - AST raíz (Program).
  * @returns {{symbols: Map, types: Array}} - Tabla de símbolos y anotaciones de tipos.
@@ -22,7 +22,7 @@ export function analyze(ast) {
     if (!symbols.has(name)) {
       symbols.set(name, {
         name,
-        type: null,
+        type: "int",
         firstLine: line,
         scope: "global",
       });
@@ -32,34 +32,13 @@ export function analyze(ast) {
 
   const visit = (n) => {
     switch (n.kind) {
-      case "Program":
-        n.stmts.forEach(visit);
-        return null;
-
-      case "Block":
-        n.stmts.forEach(visit);
-        return null;
-
-      case "Assign": {
-        const rhs = visit(n.expr);
-        const sym = ensure(n.name, n.line);
-        if (sym.type == null) {
-          sym.type = rhs;
-        } else if (sym.type !== rhs) {
-          throw new SemanticError(
-            `Error semántico: asignación incompatible a '${n.name}' en línea ${n.line}. Se esperaba ${sym.type} pero se obtuvo ${rhs}.`
-          );
-        }
-        return null;
+      case "Program": {
+        const exprType = visit(n.expr);
+        return exprType;
       }
 
       case "Var": {
         const sym = ensure(n.name, n.line || 0);
-        if (sym.type == null) {
-          throw new SemanticError(
-            `Error semántico: variable '${n.name}' usada antes de ser inicializada (línea ${n.line}).`
-          );
-        }
         setType(`var ${n.name}`, sym.type);
         return sym.type;
       }
@@ -67,10 +46,6 @@ export function analyze(ast) {
       case "Num":
         setType(String(n.value), "int");
         return "int";
-
-      case "Bool":
-        setType(String(n.value), "bool");
-        return "bool";
 
       case "Unary": {
         const rt = visit(n.right);
@@ -83,15 +58,6 @@ export function analyze(ast) {
           setType("(- ?)", "int");
           return "int";
         }
-        if (n.op === "!") {
-          if (rt !== "bool") {
-            throw new SemanticError(
-              "Error semántico: '!' sólo se aplica a booleanos."
-            );
-          }
-          setType("(! ?)", "bool");
-          return "bool";
-        }
         return rt;
       }
 
@@ -102,46 +68,17 @@ export function analyze(ast) {
         if (["+", "-", "*", "/"].includes(n.op)) {
           if (lt !== "int" || rt !== "int") {
             throw new SemanticError(
-              "Error semántico: operadores aritméticos requieren enteros."
+              `Error semántico: el operador '${n.op}' requiere operandos enteros.`
             );
           }
           setType(`(? ${n.op} ?)`, "int");
           return "int";
         }
-
-        if (["<", "<=", ">", ">="].includes(n.op)) {
-          if (lt !== "int" || rt !== "int") {
-            throw new SemanticError(
-              "Error semántico: comparaciones <,<=,>,>= requieren enteros."
-            );
-          }
-          setType(`(? ${n.op} ?)`, "bool");
-          return "bool";
-        }
-
-        if (["==", "!="].includes(n.op)) {
-          if (lt !== rt) {
-            throw new SemanticError(
-              "'==' y '!=' requieren operandos del mismo tipo."
-            );
-          }
-          setType(`(? ${n.op} ?)`, "bool");
-          return "bool";
-        }
         return null;
       }
 
-      case "If": {
-        const ct = visit(n.cond);
-        if (ct !== "bool") {
-          throw new SemanticError(
-            "Error semántico: la condición del if debe ser booleana."
-          );
-        }
-        visit(n.then);
-        if (n.else) visit(n.else);
+      default:
         return null;
-      }
     }
   };
 

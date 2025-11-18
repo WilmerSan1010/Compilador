@@ -2,18 +2,13 @@
 import { LexError } from "./errors.js";
 
 // =======================================================
-// LÉXICO: DEFINICIÓN DE TOKENS Y TOKENIZER
+// LÉXICO: COMPILADOR DE FÓRMULAS ARITMÉTICAS
 // =======================================================
 
 /**
- * Palabras reservadas del lenguaje y su tipo de token.
+ * Palabras reservadas del lenguaje (ninguna en este compilador simple).
  */
-export const KEYWORDS = {
-  if: "IF",
-  else: "ELSE",
-  true: "TRUE",
-  false: "FALSE",
-};
+export const KEYWORDS = {};
 
 /**
  * Símbolos de un solo carácter y su tipo de token.
@@ -21,66 +16,40 @@ export const KEYWORDS = {
 export const SIMPLE = {
   "(": "LPAREN",
   ")": "RPAREN",
-  "{": "LBRACE",
-  "}": "RBRACE",
-  ";": "SEMI",
   "+": "PLUS",
   "-": "MINUS",
   "*": "STAR",
   "/": "SLASH",
-  "=": "ASSIGN",
-  "!": "BANG",
-  "<": "LT",
-  ">": "GT",
 };
 
 /**
  * Etiquetas en español para mostrar el tipo de token en la UI.
- * Se usan principalmente en la tabla de tokens.
  */
 export const TOKEN_LABELS = {
-  IF: "Palabra clave: if",
-  ELSE: "Palabra clave: else",
-  TRUE: "Booleano: true",
-  FALSE: "Booleano: false",
   IDENT: "Identificador",
   NUMBER: "Número",
   LPAREN: "Paréntesis izquierdo '('",
   RPAREN: "Paréntesis derecho ')'",
-  LBRACE: "Llave izquierda '{'",
-  RBRACE: "Llave derecha '}'",
-  SEMI: "Punto y coma ';'",
   PLUS: "Operador '+'",
   MINUS: "Operador '-'",
   STAR: "Operador '*'",
   SLASH: "Operador '/'",
-  ASSIGN: "Operador '='",
-  BANG: "Operador '!'",
-  LT: "Operador '<'",
-  GT: "Operador '>'",
-  LE: "Operador '<='",
-  GE: "Operador '>='",
-  EQ: "Operador '=='",
-  NEQ: "Operador '!='",
   EOF: "Fin de entrada",
 };
 
 /**
  * Devuelve una etiqueta legible en español para un tipo de token.
- * Si no existe etiqueta en TOKEN_LABELS, devuelve el tipo crudo.
  */
 export function tokenTypeLabel(ttype) {
   return TOKEN_LABELS[ttype] || ttype;
 }
 
 /**
- * Convierte el código fuente (string) en una lista de tokens.
+ * Tokeniza una fórmula aritmética.
  * Cada token tiene:
  *   - type: tipo de token
  *   - lexeme: texto original del token
- *   - line, col: ubicación en el código (para mensajes de error)
- *
- * Lanza LexError si encuentra un carácter no reconocido.
+ *   - line: ubicación en el código
  */
 export function tokenize(src) {
   const toks = [];
@@ -109,7 +78,7 @@ export function tokenize(src) {
       continue;
     }
 
-    // Identificadores o palabras reservadas
+    // Identificadores (letras, números, guiones bajos)
     if ((c >= "A" && c <= "Z") || (c >= "a" && c <= "z") || c === "_") {
       let s = i;
       adv();
@@ -125,8 +94,7 @@ export function tokenize(src) {
         else break;
       }
       const lex = src.slice(s, i);
-      const ttype = KEYWORDS[lex] || "IDENT";
-      toks.push({ type: ttype, lexeme: lex, line });
+      toks.push({ type: "IDENT", lexeme: lex, line });
       continue;
     }
 
@@ -140,20 +108,8 @@ export function tokenize(src) {
       continue;
     }
 
-    // Operadores de dos caracteres: ==, !=, <=, >=
-    const two = src.slice(i, i + 2);
-    if (two === "==" || two === "!=" || two === "<=" || two === ">=") {
-      let type;
-      if (two === "==") type = "EQ";
-      else if (two === "!=") type = "NEQ";
-      else if (two === "<=") type = "LE";
-      else type = "GE";
-      toks.push({ type, lexeme: two, line });
-      adv(2);
-      continue;
-    }
-
     // Comentarios de línea: // ...
+    const two = src.slice(i, i + 2);
     if (two === "//") {
       while (i < len && src[i] !== "\n") i++;
       continue;
@@ -163,7 +119,6 @@ export function tokenize(src) {
     if (SIMPLE[c]) {
       toks.push({ type: SIMPLE[c], lexeme: c, line });
       adv();
-      
       continue;
     }
 

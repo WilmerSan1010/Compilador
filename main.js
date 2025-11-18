@@ -99,9 +99,14 @@ export function compileSource(source) {
 // Textarea donde el usuario escribe el código
 const code = $("#code");
 
-// Botón de ejemplo: sentencia if
-function handleIfExampleClick() {
-  code.value = "if (3 < 5) { y = 10; } else { y = 0; }";
+// Botón de ejemplo: fórmula 1
+function handleFormula1Click() {
+  code.value = "a + b * 2";
+}
+
+// Botón de ejemplo: fórmula 2
+function handleFormula2Click() {
+  code.value = "(a + b) * c";
 }
 
 // Botón para limpiar el código y el estado
@@ -123,7 +128,7 @@ function handleRunClick() {
   if (!src) {
     openModalHtml(
       "Atención",
-      '<p>Pega una sentencia <code class="mono">if</code>  <code class="mono"></code>  <code class="mono"></code>.</p>'
+      '<p>Ingresa una fórmula aritmética, por ejemplo: <code class="mono">3 + 5 * 2</code></p>'
     );
     return;
   }
@@ -282,7 +287,8 @@ function openASTModal() {
 
 function initUI() {
   // Botones principales
-  $("#btnIf").addEventListener("click", handleIfExampleClick);
+  $("#btnFormula").addEventListener("click", handleFormula1Click);
+  $("#btnFormula2").addEventListener("click", handleFormula2Click);
   $("#btnClear").addEventListener("click", handleClearClick);
   $("#btnRun").addEventListener("click", handleRunClick);
 

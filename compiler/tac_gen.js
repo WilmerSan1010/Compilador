@@ -6,18 +6,14 @@
 export function genTAC(ast) {
   const code = [];
   let tempId = 0;
-  let labelId = 0;
 
   const newTemp = () => `t${++tempId}`;
-  const newLabel = () => `L${++labelId}`;
   const emit = (line) => code.push(line);
 
   const evalExpr = (node) => {
     switch (node.kind) {
       case "Num":
         return String(node.value);
-      case "Bool":
-        return node.value ? "true" : "false";
       case "Var":
         return node.name;
       case "Unary": {
@@ -40,27 +36,9 @@ export function genTAC(ast) {
 
   const gen = (node) => {
     switch (node.kind) {
-      case "Program":
-        node.stmts.forEach(gen);
-        return;
-      case "Block":
-        node.stmts.forEach(gen);
-        return;
-      case "Assign": {
-        const v = evalExpr(node.expr);
-        emit(`${node.name} = ${v}`);
-        return;
-      }
-      case "If": {
-        const condTmp = evalExpr(node.cond);
-        const lElse = newLabel();
-        const lEnd = newLabel();
-        emit(`ifFalse ${condTmp} goto ${lElse}`);
-        gen(node.then);
-        emit(`goto ${lEnd}`);
-        emit(`${lElse}:`);
-        if (node.else) gen(node.else);
-        emit(`${lEnd}:`);
+      case "Program": {
+        const result = evalExpr(node.expr);
+        emit(`result = ${result}`);
         return;
       }
       default:
