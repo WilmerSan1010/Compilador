@@ -194,9 +194,8 @@ function openTokensModal() {
     String(i),
     tokenTypeLabel(t.type), // tipo mostrado en español
     t.lexeme ?? "",
-    String(t.line),
   ]);
-  const table = makeTable(["#", "Tipo", "Lexema", "Línea"], rows);
+  const table = makeTable(["#", "Tipo", "Lexema"], rows);
   openModal("Tokens (léxico)", table);
 }
 
