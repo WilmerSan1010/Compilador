@@ -37,12 +37,6 @@ export  function astLabel(n) {
  export  function astChildren(n) {
   switch (n.kind) {
     case "Program":
-      return n.stmts;
-    case "Block":
-      return n.stmts;
-    case "If":
-      return [n.cond, n.then, ...(n.else ? [n.else] : [])];
-    case "Assign":
       return [n.expr];
     case "Unary":
       return [n.right];

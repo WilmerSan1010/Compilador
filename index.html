@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mini Compilador: if / while → AST, Tipos y Símbolos</title>
+  <title>Compilador de Fórmulas Aritméticas</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -14,8 +14,9 @@
     <header class="flex items-start justify-between gap-4">
       <div>
         <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">
-          Mini Compilador
+          Compilador de Fórmulas Aritméticas
         </h1>
+        <p class="text-sm text-slate-600 mt-1">Análisis léxico, sintáctico y semántico de expresiones matemáticas</p>
       </div>
       <div class="hidden sm:flex items-center flex-wrap gap-2">
         <span class="badge badge-gray">Léxico</span>
@@ -26,16 +27,19 @@
     </header>
 
     <section class="card space-y-3">
-      <label for="code" class="text-sm font-semibold text-slate-700">Código de entrada</label>
+      <label for="code" class="text-sm font-semibold text-slate-700">Fórmula aritmética</label>
       <textarea id="code"
         class="w-full h-40 mono rounded-xl border border-slate-200 p-3 focus:outline-none focus:ring-2 focus:ring-indigo-400"
         placeholder="Ejemplos:
-if (3 < 5) { y = 10; } else { y = 0; }
+a + b * 2
+(a + b) * c
+x + y - z
 "></textarea>
 
       <div class="flex flex-wrap gap-2 pt-1">
         <button id="btnRun" class="btn-primary">Analizar</button>
-        <button id="btnIf" class="btn-dark">Ejemplo if</button>
+        <button id="btnFormula" class="btn-dark">Ejemplo 1: a + b * 2</button>
+        <button id="btnFormula2" class="btn-dark">Ejemplo 2: (a + b) * c</button>
         
         <button id="btnClear" class="btn">Limpiar</button>
 
@@ -53,7 +57,6 @@ if (3 < 5) { y = 10; } else { y = 0; }
           <button id="btnTYP" class="btn-outline" title="Ver tabla de tipos">
             Ver Tipos
           </button>
-          <!-- Botón de TAC eliminado -->
         </div>
       </div>
 
@@ -62,15 +65,10 @@ if (3 < 5) { y = 10; } else { y = 0; }
 
     <footer class="text-xs text-slate-500">
       <p>
-        Soporta: <code class="mono">if</code>/<code class="mono">else</code>,
-        <code class="mono">while</code>, bloques
-        <code class="mono">{ }</code>, asignaciones
-        <code class="mono">x = expr;</code> y expresiones con
-        <code class="mono">()</code>, <code class="mono">-</code>,
-        <code class="mono">!</code>, <code class="mono">* / + -</code>,
-        <code class="mono">&lt; &lt;= &gt; &gt;=</code>,
-        <code class="mono">== !=</code>. Tipos:
-        <code class="mono">int</code> y <code class="mono">bool</code>.
+        Soporta: Números, identificadores, operadores aritméticos
+        <code class="mono">+ - * /</code>, paréntesis
+        <code class="mono">( )</code>. Tipos:
+        <code class="mono">int</code>.
       </p>
     </footer>
   </main>
