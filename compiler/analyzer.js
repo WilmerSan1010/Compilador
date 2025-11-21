@@ -15,6 +15,7 @@ import { SemanticError } from "./errors.js";
 export function analyze(ast) {
   const symbols = new Map(); // nombre → info de símbolo
   const types = []; // anotaciones de tipo sobre nodos
+  const declaredVars = new Set(); // variables explícitamente declaradas
 
   const setType = (label, typ) => types.push({ node: label, type: typ });
 
@@ -38,6 +39,18 @@ export function analyze(ast) {
       }
 
       case "Var": {
+        // Rechaza variables que comienzan con underscore (no inicializadas)
+        if (n.name.startsWith("_")) {
+          throw new SemanticError(
+            `Error semántico: variable '${n.name}' no ha sido inicializada.`
+          );
+        }
+        // Rechaza variables que no han sido declaradas (comienzan con mayúscula = constante no declarada)
+        if (n.name === n.name.toUpperCase() && n.name.length > 1) {
+          throw new SemanticError(
+            `Error semántico: constante '${n.name}' no ha sido declarada.`
+          );
+        }
         const sym = ensure(n.name, n.line || 0);
         setType(`var ${n.name}`, sym.type);
         return sym.type;
@@ -71,6 +84,14 @@ export function analyze(ast) {
               `Error semántico: el operador '${n.op}' requiere operandos enteros.`
             );
           }
+          
+          // Rechaza división por cero si el operando derecho es una constante 0
+          if (n.op === "/" && n.right.kind === "Num" && n.right.value === 0) {
+            throw new SemanticError(
+              "Error semántico: división por cero no permitida."
+            );
+          }
+          
           setType(`( ${n.op} )`, "int");
           return "int";
         }
