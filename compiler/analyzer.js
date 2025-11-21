@@ -55,7 +55,7 @@ export function analyze(ast) {
               "Error semántico: '-' sólo se aplica a enteros."
             );
           }
-          setType("(- ?)", "int");
+          setType(`(${n.op} )`, "int");
           return "int";
         }
         return rt;
@@ -71,7 +71,7 @@ export function analyze(ast) {
               `Error semántico: el operador '${n.op}' requiere operandos enteros.`
             );
           }
-          setType(`(? ${n.op} ?)`, "int");
+          setType(`( ${n.op} )`, "int");
           return "int";
         }
         return null;
