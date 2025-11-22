@@ -28,12 +28,12 @@ export const SIMPLE = {
 export const TOKEN_LABELS = {
   IDENT: "Identificador",
   NUMBER: "Número",
-  LPAREN: "Paréntesis izquierdo '('",
-  RPAREN: "Paréntesis derecho ')'",
-  PLUS: "Operador '+'",
-  MINUS: "Operador '-'",
-  STAR: "Operador '*'",
-  SLASH: "Operador '/'",
+  LPAREN: "Paréntesis",
+  RPAREN: "Paréntesis",
+  PLUS: "Operador",
+  MINUS: "Operador",
+  STAR: "Operador",
+  SLASH: "Operador",
   EOF: "Fin de entrada",
 };
 
