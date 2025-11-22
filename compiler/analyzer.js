@@ -13,22 +13,22 @@ import { SemanticError } from "./errors.js";
  * @returns {{symbols: Map, types: Array}} - Tabla de símbolos y anotaciones de tipos.
  */
 export function analyze(ast) {
-  const symbols = new Map(); // nombre → info de símbolo
+  const symbols = new Map(); // valor → info de símbolo (para números)
   const types = []; // anotaciones de tipo sobre nodos
-  const declaredVars = new Set(); // variables explícitamente declaradas
+  let dirCounter = 1; // contador para direcciones de memoria simuladas
 
   const setType = (label, typ) => types.push({ node: label, type: typ });
 
-  const ensure = (name, line) => {
-    if (!symbols.has(name)) {
-      symbols.set(name, {
-        name,
+  const addSymbol = (value) => {
+    const key = String(value);
+    if (!symbols.has(key)) {
+      symbols.set(key, {
+        name: key,
         type: "int",
-        firstLine: line,
-        scope: "global",
+        address: `dir_${dirCounter++}`,
       });
     }
-    return symbols.get(name);
+    return symbols.get(key);
   };
 
   const visit = (n) => {
@@ -39,12 +39,14 @@ export function analyze(ast) {
       }
 
       case "Var": {
-        const sym = ensure(n.name, n.line || 0);
-        setType(`var ${n.name}`, sym.type);
-        return sym.type;
+        // No deberían existir variables en una calculadora
+        throw new SemanticError(
+          `Error semántico: no se permiten variables. Solo números.`
+        );
       }
 
       case "Num":
+        addSymbol(n.value); // Registrar el número en la tabla de símbolos
         setType(String(n.value), "int");
         return "int";
 
@@ -56,7 +58,7 @@ export function analyze(ast) {
               "Error semántico: '-' sólo se aplica a enteros."
             );
           }
-          setType(`(${n.op} )`, "int");
+          // No registrar operadores en la tabla de tipos
           return "int";
         }
         return rt;
@@ -80,7 +82,7 @@ export function analyze(ast) {
             );
           }
           
-          setType(`( ${n.op} )`, "int");
+          // No registrar operadores en la tabla de tipos
           return "int";
         }
         return null;

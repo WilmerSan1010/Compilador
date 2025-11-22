@@ -78,24 +78,11 @@ export function tokenize(src) {
       continue;
     }
 
-    // Identificadores (letras, números, guiones bajos)
+    // Rechazar letras y variables (solo números permitidos)
     if ((c >= "A" && c <= "Z") || (c >= "a" && c <= "z") || c === "_") {
-      let s = i;
-      adv();
-      while (i < len) {
-        const ch = src[i];
-        if (
-          (ch >= "A" && ch <= "Z") ||
-          (ch >= "a" && ch <= "z") ||
-          (ch >= "0" && ch <= "9") ||
-          ch === "_"
-        )
-          adv();
-        else break;
-      }
-      const lex = src.slice(s, i);
-      toks.push({ type: "IDENT", lexeme: lex, line });
-      continue;
+      throw new LexError(
+        `Error léxico: no se permiten letras o variables. Solo números y operadores. Carácter '${c}' en línea ${line}.`
+      );
     }
 
     // Números (enteros)
