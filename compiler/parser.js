@@ -68,11 +68,23 @@ export class Parser {
   expression() {
     let n = this.term();
     for (; ;) {
-      if (this.match("PLUS"))
+      if (this.match("PLUS")) {
+        const opLine = this.prev().line;
+        if (this.peek().type === "EOF") {
+          throw new ParserError(
+            `Error sintáctico: se esperaba un operando después de '+' en línea ${opLine}.`
+          );
+        }
         n = { kind: "Binary", op: "+", left: n, right: this.term() };
-      else if (this.match("MINUS"))
+      } else if (this.match("MINUS")) {
+        const opLine = this.prev().line;
+        if (this.peek().type === "EOF") {
+          throw new ParserError(
+            `Error sintáctico: se esperaba un operando después de '-' en línea ${opLine}.`
+          );
+        }
         n = { kind: "Binary", op: "-", left: n, right: this.term() };
-      else break;
+      } else break;
     }
     return n;
   }
@@ -83,11 +95,23 @@ export class Parser {
   term() {
     let n = this.factor();
     for (; ;) {
-      if (this.match("STAR"))
+      if (this.match("STAR")) {
+        const opLine = this.prev().line;
+        if (this.peek().type === "EOF") {
+          throw new ParserError(
+            `Error sintáctico: se esperaba un operando después de '*' en línea ${opLine}.`
+          );
+        }
         n = { kind: "Binary", op: "*", left: n, right: this.factor() };
-      else if (this.match("SLASH"))
+      } else if (this.match("SLASH")) {
+        const opLine = this.prev().line;
+        if (this.peek().type === "EOF") {
+          throw new ParserError(
+            `Error sintáctico: se esperaba un operando después de '/' en línea ${opLine}.`
+          );
+        }
         n = { kind: "Binary", op: "/", left: n, right: this.factor() };
-      else break;
+      } else break;
     }
     return n;
   }

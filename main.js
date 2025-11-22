@@ -24,6 +24,33 @@ import { drawASTInto } from "./compiler/ast_renderer.js";
 let LAST = null;
 
 /**
+ * Evalúa el AST y retorna el resultado numérico
+ */
+function evaluateAST(node) {
+  switch (node.kind) {
+    case "Num":
+      return node.value;
+    case "Unary":
+      if (node.op === "-") {
+        return -evaluateAST(node.right);
+      }
+      return evaluateAST(node.right);
+    case "Binary":
+      const left = evaluateAST(node.left);
+      const right = evaluateAST(node.right);
+      switch (node.op) {
+        case "+": return left + right;
+        case "-": return left - right;
+        case "*": return left * right;
+        case "/": return Math.floor(left / right);
+        default: return 0;
+      }
+    default:
+      return 0;
+  }
+}
+
+/**
  * Ejecuta la pipeline completa de compilación sobre el código fuente:
  * 1. Léxico
  * 2. Sintáctico
@@ -101,18 +128,19 @@ const code = $("#code");
 
 // Botón de ejemplo: fórmula 1
 function handleFormula1Click() {
-  code.value = "a + b * 2";
+  code.value = "10 + 5 * 2";
 }
 
 // Botón de ejemplo: fórmula 2
 function handleFormula2Click() {
-  code.value = "(a + b) * c";
+  code.value = "(10 + 5) * 3";
 }
 
 // Botón para limpiar el código y el estado
 function handleClearClick() {
   code.value = "";
   $("#phase").innerHTML = "";
+  $("#resultSection").classList.add("hidden");
   LAST = null;
 }
 
@@ -128,7 +156,7 @@ function handleRunClick() {
   if (!src) {
     openModalHtml(
       "Atención",
-      '<p>Ingresa una fórmula aritmética, por ejemplo: <code class="mono">3 + 5 * 2</code></p>'
+      '<p>Ingresa una expresión matemática, por ejemplo: <code class="mono">10 + 5 * 2</code></p>'
     );
     return;
   }
@@ -136,7 +164,13 @@ function handleRunClick() {
   try {
     const res = compileSource(src);
     LAST = res;
+    
+    // Calcular y mostrar el resultado
+    const result = evaluateAST(res.ast.expr);
+    $("#resultSection").classList.remove("hidden");
+    $("#resultValue").textContent = result;
   } catch (r) {
+    $("#resultSection").classList.add("hidden");
     LAST = r; // Resultado parcial (tiene tokens y quizá AST)
 
     // Determinar qué fase marcamos como error en el indicador
@@ -165,7 +199,7 @@ function handleRunClick() {
         <p><strong>Fase:</strong> ${r.phase || "Desconocida"}</p>
         <p class="mt-1 mono">${r.error || "Error"}</p>
       </div>
-      <p class="mt-3 text-sm text-slate-600">Consejo: inicializa las variables antes de usarlas y revisa paréntesis, llaves y punto y coma.</p>
+      <p class="mt-3 text-sm text-slate-600">Consejo: usa solo números y operadores (+, -, *, /). Revisa paréntesis y operadores.</p>
     `
     );
   }
@@ -212,9 +246,9 @@ function openSymbolsModal() {
   }
   const rows = LAST.symbols.map((s) => [
     s.name,
-    s.type ?? "—",
+    s.address ?? "—",
   ]);
-  const table = makeTable(["Identificador", "Tipo"], rows);
+  const table = makeTable(["Símbolo (Número)", "Dirección"], rows);
   openModal("Tabla de símbolos", table);
 }
 
@@ -296,7 +330,6 @@ function initUI() {
   attachModalButton("btnTOK", openTokensModal);
   attachModalButton("btnSYM", openSymbolsModal);
   attachModalButton("btnTYP", openTypesModal);
-
   attachModalButton("btnAST", openASTModal);
 
   // Estado inicial de las fases
