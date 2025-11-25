@@ -1,13 +1,9 @@
 import { ParserError } from "./errors.js";
 
 // =======================================================
-// PARSER: EXPRESIONES ARITMÉTICAS
+// SINTÁCTICO: EXPRESIONES ARITMÉTICAS
 // =======================================================
 
-/**
- * Parser recursivo descendente para expresiones aritméticas.
- * Consume la lista de tokens producida por tokenize y construye un AST.
- */
 export class Parser {
   constructor(tokens) {
     this.tokens = tokens;
@@ -49,7 +45,9 @@ export class Parser {
       return t;
     }
     throw new ParserError(
-      `Error sintáctico: se esperaba ${msg} en línea ${t.line}, pero se encontró '${t.lexeme || t.type}'.`
+      `Error sintáctico: se esperaba ${msg} en línea ${
+        t.line
+      }, pero se encontró '${t.lexeme || t.type}'.`
     );
   }
 
@@ -67,7 +65,7 @@ export class Parser {
    */
   expression() {
     let n = this.term();
-    for (; ;) {
+    for (;;) {
       if (this.match("PLUS")) {
         const opLine = this.prev().line;
         if (this.peek().type === "EOF") {
@@ -94,7 +92,7 @@ export class Parser {
    */
   term() {
     let n = this.factor();
-    for (; ;) {
+    for (;;) {
       if (this.match("STAR")) {
         const opLine = this.prev().line;
         if (this.peek().type === "EOF") {
@@ -154,7 +152,9 @@ export class Parser {
 
     // Si nada coincide, error de expresión inesperada
     throw new ParserError(
-      `Error sintáctico: expresión inesperada en línea ${t.line}: '${t.lexeme || t.type}'.`
+      `Error sintáctico: expresión inesperada en línea ${t.line}: '${
+        t.lexeme || t.type
+      }'.`
     );
   }
 }

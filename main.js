@@ -10,22 +10,14 @@ import {
 import { tokenize, tokenTypeLabel } from "./compiler/lexer.js";
 import { Parser } from "./compiler/parser.js";
 import { analyze } from "./compiler/analyzer.js";
-import { genTAC } from "./compiler/tac_gen.js";
 import { drawASTInto } from "./compiler/ast_renderer.js";
-// =======================================================
-// PIPELINE DE COMPILACIÓN COMPLETA
-// =======================================================
 
-/**
- * LAST guarda siempre el último resultado (completo o parcial)
- * de la compilación, para que los botones (TOK, SYM, AST, etc.)
- * puedan mostrar la información correspondiente.
- */
 let LAST = null;
 
 /**
  * Evalúa el AST y retorna el resultado numérico
  */
+
 function evaluateAST(node) {
   switch (node.kind) {
     case "Num":
@@ -39,30 +31,22 @@ function evaluateAST(node) {
       const left = evaluateAST(node.left);
       const right = evaluateAST(node.right);
       switch (node.op) {
-        case "+": return left + right;
-        case "-": return left - right;
-        case "*": return left * right;
-        case "/": return Math.floor(left / right);
-        default: return 0;
+        case "+":
+          return left + right;
+        case "-":
+          return left - right;
+        case "*":
+          return left * right;
+        case "/":
+          return Math.floor(left / right);
+        default:
+          return 0;
       }
     default:
       return 0;
   }
 }
 
-/**
- * Ejecuta la pipeline completa de compilación sobre el código fuente:
- * 1. Léxico
- * 2. Sintáctico
- * 3. Semántico
- * 4. Generación de TAC
- *
- * Actualiza el indicador de fase (setPhase) en cada etapa.
- * Si una fase lanza error, se lanza un objeto "result" con:
- *   - phase: nombre de la fase
- *   - error: mensaje de error
- *   - y los datos que se hayan producido hasta el momento.
- */
 export function compileSource(source) {
   const result = {
     phase: null,
@@ -71,27 +55,26 @@ export function compileSource(source) {
     ast: null,
     symbols: [],
     types: [],
-    tac: [],
   };
 
   // --- Fase 1: Análisis léxico ---
   try {
     const tokens = tokenize(source);
     result.tokens = tokens;
-    setPhase({ lex: "ok", syn: "pending", sem: "pending", tac: "pending" });
+    setPhase({ lex: "ok", syn: "pending", sem: "pending" });
   } catch (e) {
     result.phase = "Análisis léxico";
     result.error = e.message;
     throw result;
   }
 
-  // --- Fase 2: Análisis sintáctico (Parser) ---
+  // --- Fase 2: Análisis sintáctico ---
   let ast;
   try {
     const p = new Parser(result.tokens);
     ast = p.parse();
     result.ast = ast;
-    setPhase({ lex: "ok", syn: "ok", sem: "pending", tac: "pending" });
+    setPhase({ lex: "ok", syn: "ok", sem: "pending" });
   } catch (e) {
     result.phase = "Análisis sintáctico";
     result.error = e.message;
@@ -104,17 +87,12 @@ export function compileSource(source) {
     const sem = analyze(ast);
     result.symbols = Array.from(sem.symbols.values());
     result.types = sem.types;
-    setPhase({ lex: "ok", syn: "ok", sem: "ok", tac: "pending" });
+    setPhase({ lex: "ok", syn: "ok", sem: "ok" });
   } catch (e) {
     result.phase = "Análisis semántico";
     result.error = e.message;
     throw result;
   }
-
-  // --- Fase 4: Generación de TAC ---
-  const tac = genTAC(ast);
-  result.tac = tac;
-  setPhase({ lex: "ok", syn: "ok", sem: "ok", tac: "ok" });
 
   return result;
 }
@@ -123,7 +101,6 @@ export function compileSource(source) {
 // UI: BOTONES, EVENTOS Y MODALES
 // =======================================================
 
-// Textarea donde el usuario escribe el código
 const code = $("#code");
 
 // Botón de ejemplo: fórmula 1
@@ -146,10 +123,6 @@ function handleClearClick() {
 
 /**
  * Botón principal de ejecución.
- * - Si no hay código, muestra un aviso en modal.
- * - Si hay código, ejecuta compileSource.
- * - Si hay error en alguna fase, muestra un modal con información
- *   y marca la fase correspondiente como error.
  */
 function handleRunClick() {
   const src = code.value.trim();
@@ -164,21 +137,20 @@ function handleRunClick() {
   try {
     const res = compileSource(src);
     LAST = res;
-    
+
     // Calcular y mostrar el resultado
     const result = evaluateAST(res.ast.expr);
     $("#resultSection").classList.remove("hidden");
     $("#resultValue").textContent = result;
   } catch (r) {
     $("#resultSection").classList.add("hidden");
-    LAST = r; // Resultado parcial (tiene tokens y quizá AST)
+    LAST = r;
 
     // Determinar qué fase marcamos como error en el indicador
     const st = {
       lex: "pending",
       syn: "pending",
       sem: "pending",
-      tac: "pending",
     };
     if (r.phase === "Análisis léxico") st.lex = "err";
     else if (r.phase === "Análisis sintáctico") {
@@ -191,7 +163,7 @@ function handleRunClick() {
     }
     setPhase(st);
 
-    // Modal de error amigable
+    // Modal de error
     openModalHtml(
       "❌ Error",
       `
@@ -206,12 +178,10 @@ function handleRunClick() {
 }
 
 /**
- * Asocia un botón a la apertura de un modal.
- * - Siempre abre al hacer click.
- * - Si OPEN_ON_HOVER está a true, también abre al pasar el mouse.
+ * Asocia el botón a la apertura de cualuier modal.
  *
- * @param {string} btnId - id del botón en el DOM.
- * @param {Function} openFn - función que abre el modal correspondiente.
+ * @param {string} btnId
+ * @param {Function} openFn
  */
 function attachModalButton(btnId, openFn) {
   const btn = document.getElementById(btnId);
@@ -231,7 +201,7 @@ function openTokensModal() {
   }
   const rows = LAST.tokens.map((t, i) => [
     String(i),
-    tokenTypeLabel(t.type), // tipo mostrado en español
+    tokenTypeLabel(t.type),
     t.lexeme ?? "",
   ]);
   const table = makeTable(["#", "Tipo", "Lexema"], rows);
@@ -244,15 +214,12 @@ function openSymbolsModal() {
     openModalHtml("Símbolos", "<p>No hay datos. Analiza primero.</p>");
     return;
   }
-  const rows = LAST.symbols.map((s) => [
-    s.name,
-    s.address ?? "—",
-  ]);
+  const rows = LAST.symbols.map((s) => [s.name, s.address ?? "—"]);
   const table = makeTable(["Símbolo (Número)", "Dirección"], rows);
   openModal("Tabla de símbolos", table);
 }
 
-// Tabla de tipos (anotaciones semánticas)
+// Tabla de tipos
 function openTypesModal() {
   if (!LAST || !LAST.types) {
     openModalHtml("Tipos", "<p>No hay datos. Analiza primero.</p>");
@@ -263,7 +230,7 @@ function openTypesModal() {
   openModal("Tabla de tipos", table);
 }
 
-// AST (con zoom y scroll)
+// AST
 function openASTModal() {
   if (!LAST || !LAST.ast) {
     if (!LAST) {
@@ -277,7 +244,7 @@ function openASTModal() {
     return;
   }
 
-  // Contenido del modal: toolbar de zoom + viewport desplazable
+  // Contenido del modal
   const wrap = document.createElement("div");
   wrap.innerHTML = `
     <div class="flex items-center gap-2 mb-3">
@@ -333,7 +300,7 @@ function initUI() {
   attachModalButton("btnAST", openASTModal);
 
   // Estado inicial de las fases
-  setPhase({ lex: "pending", syn: "pending", sem: "pending", tac: "pending" });
+  setPhase({ lex: "pending", syn: "pending", sem: "pending" });
 }
 
 initUI();

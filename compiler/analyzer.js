@@ -6,16 +6,14 @@ import { SemanticError } from "./errors.js";
 
 /**
  * Recorre el AST comprobando reglas semánticas:
- * - Variables deben tener tipos consistentes.
- * - Operadores se aplican a tipos correctos.
  *
- * @param {object} ast - AST raíz (Program).
+ * @param {object} ast
  * @returns {{symbols: Map, types: Array}} - Tabla de símbolos y anotaciones de tipos.
  */
 export function analyze(ast) {
-  const symbols = new Map(); // valor → info de símbolo (para números)
-  const types = []; // anotaciones de tipo sobre nodos
-  let dirCounter = 1; // contador para direcciones de memoria simuladas
+  const symbols = new Map();
+  const types = [];
+  let dirCounter = 1;
 
   const setType = (label, typ) => types.push({ node: label, type: typ });
 
@@ -39,14 +37,13 @@ export function analyze(ast) {
       }
 
       case "Var": {
-        // No deberían existir variables en una calculadora
         throw new SemanticError(
           `Error semántico: no se permiten variables. Solo números.`
         );
       }
 
       case "Num":
-        addSymbol(n.value); // Registrar el número en la tabla de símbolos
+        addSymbol(n.value);
         setType(String(n.value), "int");
         return "int";
 
@@ -58,7 +55,6 @@ export function analyze(ast) {
               "Error semántico: '-' sólo se aplica a enteros."
             );
           }
-          // No registrar operadores en la tabla de tipos
           return "int";
         }
         return rt;
@@ -74,15 +70,14 @@ export function analyze(ast) {
               `Error semántico: el operador '${n.op}' requiere operandos enteros.`
             );
           }
-          
+
           // Rechaza división por cero si el operando derecho es una constante 0
           if (n.op === "/" && n.right.kind === "Num" && n.right.value === 0) {
             throw new SemanticError(
               "Error semántico: división por cero no permitida."
             );
           }
-          
-          // No registrar operadores en la tabla de tipos
+
           return "int";
         }
         return null;

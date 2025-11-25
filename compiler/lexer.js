@@ -37,27 +37,16 @@ export const TOKEN_LABELS = {
   EOF: "Fin de entrada",
 };
 
-/**
- * Devuelve una etiqueta legible en español para un tipo de token.
- */
 export function tokenTypeLabel(ttype) {
   return TOKEN_LABELS[ttype] || ttype;
 }
 
-/**
- * Tokeniza una fórmula aritmética.
- * Cada token tiene:
- *   - type: tipo de token
- *   - lexeme: texto original del token
- *   - line: ubicación en el código
- */
 export function tokenize(src) {
   const toks = [];
   let i = 0,
     line = 1;
   const len = src.length;
 
-  // Avanza n caracteres en la entrada
   const adv = (n = 1) => {
     i += n;
   };

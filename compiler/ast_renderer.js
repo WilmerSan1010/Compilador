@@ -1,32 +1,25 @@
-// =======================================================
-// AST → SVG (CÁLCULO DE POSICIONES Y DIBUJO)
-// =======================================================
-
-/**
- * Devuelve una etiqueta legible en español según el tipo de nodo AST.
- */
-export  function astLabel(n) {
+export function astLabel(n) {
   switch (n.kind) {
     case "Program":
-      return "prog";      
+      return "prog";
     case "Block":
-      return "{}";       
+      return "{}";
     case "If":
       return "if";
     case "Assign":
-      return "=";         
+      return "=";
     case "Var":
-      return n.name;      
+      return n.name;
     case "Num":
-      return String(n.value);          
+      return String(n.value);
     case "Bool":
       return n.value ? "true" : "false";
     case "Unary":
-      return n.op;        
+      return n.op;
     case "Binary":
-      return n.op;       
+      return n.op;
     default:
-      return n.kind;      
+      return n.kind;
   }
 }
 
@@ -34,7 +27,7 @@ export  function astLabel(n) {
  * Devuelve los hijos directos de un nodo del AST.
  * Se usa para recorrer el árbol de manera genérica.
  */
- export  function astChildren(n) {
+export function astChildren(n) {
   switch (n.kind) {
     case "Program":
       return [n.expr];
@@ -54,9 +47,9 @@ export  function astLabel(n) {
  * @param {number} xoff - Desplazamiento en x.
  * @param {number} xsp - Espaciado horizontal entre nodos.
  * @param {number} ysp - Espaciado vertical entre niveles.
- * @returns {{pos: Map, width: number}} - Map de nodo → {x,y} y ancho del subárbol.
+ * @returns {{pos: Map, width: number}}
  */
-export  function computeLayout(node, depth = 0, xoff = 0, xsp = 120, ysp = 90) {
+export function computeLayout(node, depth = 0, xoff = 0, xsp = 120, ysp = 90) {
   const ch = astChildren(node);
   if (ch.length === 0) {
     const pos = new Map([[node, { x: xoff, y: depth * ysp }]]);
@@ -80,15 +73,12 @@ export  function computeLayout(node, depth = 0, xoff = 0, xsp = 120, ysp = 90) {
 }
 
 /**
- * Dibuja el AST en un elemento SVG:
- * - Primero calcula las posiciones de los nodos.
- * - Luego dibuja líneas (edges) y rectángulos con texto (nodes).
+ * Dibuja el AST en un elemento:
  *
  * @param {object} node - Nodo raíz del AST.
- * @param {SVGElement} svg - SVG donde se dibujará el árbol.
+ * @param {SVGElement} svg
  */
-export  function drawASTInto(node, svg) {
-  // Limpia el SVG
+export function drawASTInto(node, svg) {
   while (svg.firstChild) svg.removeChild(svg.firstChild);
   if (!node) return;
 
@@ -100,7 +90,7 @@ export  function drawASTInto(node, svg) {
   const shiftX = (x) => (x - minX) * 120 + 60;
   const shiftY = (y) => y + 40;
 
-  // --- Dibujo de aristas (líneas) ---
+  // --- Dibujo de aristas ---
   for (const parent of nodes) {
     for (const ch of astChildren(parent)) {
       const p = pos.get(parent),
@@ -119,7 +109,7 @@ export  function drawASTInto(node, svg) {
     }
   }
 
-  // --- Dibujo de nodos (rect + texto) ---
+  // --- Dibujo de nodos ---
   for (const n of nodes) {
     const p = pos.get(n);
     const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -147,8 +137,7 @@ export  function drawASTInto(node, svg) {
     g.appendChild(text);
     svg.appendChild(g);
   }
-
-  // Ajuste automático del tamaño del SVG según el contenido dibujado
+  // Ajusta el tamaño al contenido
   const rects = Array.from(svg.querySelectorAll("rect"));
   if (rects.length) {
     const maxX = Math.max(
